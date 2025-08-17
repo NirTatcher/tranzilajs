@@ -1,0 +1,79 @@
+{
+  "name": "tranzilajs",
+  "version": "1.0.0",
+  "description": "A comprehensive TypeScript library for integrating with the Tranzila payment gateway API",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NirTatcher/tranzilajs.git"
+  },
+  "homepage": "https://github.com/NirTatcher/tranzilajs#readme",
+  "bugs": {
+    "url": "https://github.com/NirTatcher/tranzilajs/issues"
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "rollup -c && tsc --emitDeclarationOnly",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist && rm -f *.tgz",
+    "prebuild": "npm run clean",
+    "validate": "npm run type-check && npm test && npm run build",
+    "prepack": "npm run validate",
+    "package": "npm pack",
+    "test:package": "npm run package && npm install ./tranzilajs-*.tgz && npm uninstall tranzilajs && npm run clean && npm install",
+    "test:compatibility": "node scripts/test-modules.js",
+    "test:release": "node scripts/test-release.js",
+    "ci": "npm ci && npm run validate"
+  },
+  "keywords": [
+    "tranzila",
+    "payment",
+    "gateway",
+    "typescript",
+    "bit",
+    "credit-card",
+    "iframe",
+    "standing-orders",
+    "transactions",
+    "payment-processing"
+  ],
+  "author": "TranzilaJS Contributors",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-typescript": "^7.27.1",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/crypto-js": "^4.2.2",
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "rollup": "^3.29.4",
+    "ts-jest": "^29.2.5",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "crypto-js": "^4.2.0"
+  }
+}

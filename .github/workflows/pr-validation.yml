@@ -1,0 +1,79 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  validate:
+    name: Validate Code Quality
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18', '20', '22']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run linting and type checking
+        run: |
+          npm run type-check
+          echo "✅ Type checking passed"
+          
+      - name: Run tests
+        run: |
+          npm test
+          echo "✅ All tests passed"
+          
+      - name: Build package
+        run: |
+          npm run build
+          echo "✅ Build successful"
+          
+      - name: Verify package contents
+        run: |
+          echo "📦 Package contents:"
+          ls -la dist/
+          echo "📊 Package size:"
+          du -sh dist/
+          
+      - name: Test package compatibility
+        run: |
+          npm run test:compatibility
+          echo "✅ Package compatibility tests passed"
+          
+      - name: Test package locally
+        run: |
+          npm pack
+          echo "✅ Package created successfully"
+          echo "📦 Package file:"
+          ls -la *.tgz
+          
+      - name: Check for circular dependencies
+        run: |
+          echo "🔍 Checking for circular dependencies..."
+          if grep -q "tranzilajs.*file:" package-lock.json; then
+            echo "❌ ERROR: Circular dependency detected in package-lock.json!"
+            echo "Found: $(grep 'tranzilajs.*file:' package-lock.json)"
+            echo "This usually happens after running 'npm run test:package'"
+            echo "Please remove package-lock.json and run 'npm install' to fix"
+            exit 1
+          fi
+          echo "✅ No circular dependencies found"
+          
+      - name: Cleanup
+        run: |
+          rm -f *.tgz
+          echo "✅ Cleanup completed" 

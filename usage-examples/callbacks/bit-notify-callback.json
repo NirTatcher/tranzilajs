@@ -1,0 +1,17 @@
+{
+"index": "12345",    
+"ConfirmationCode": "1234567",
+"notify_url": "https://your-site.com/notify",
+"Response": "000",
+"processor_response_code": "000",
+"supplier": "myterminal",
+"terminal_name": "myterminal",
+"ccno": "123456******7890",
+"sum": "500",
+"currency": "ILS",
+"expyear": "28",
+"expmonth": "08",
+"bit": "bit",
+"payment_method": "BIT",
+"json_purchase_data2": "%5B%7B%22product_name%22%3A%22Test%2520Product%22%2C%22product_quantity%22%3A1%2C%22product_price%22%3A5%2C%22product_type%22%3A%22I%22%7D%5D"
+}

@@ -1,0 +1,199 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+      publish_to_npm:
+        description: 'Publish to npm?'
+        required: false
+        default: true
+        type: boolean
+      npm_tag:
+        description: 'npm tag (latest, beta, alpha)'
+        required: false
+        default: 'latest'
+      create_github_release:
+        description: 'Create GitHub release?'
+        required: false
+        default: true
+        type: boolean
+      create_git_tag:
+        description: 'Create Git tag?'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup npm authentication
+        if: ${{ github.event.inputs.publish_to_npm == 'true' }}
+        run: |
+          echo "🔐 Setting up npm authentication..."
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "✅ npm authentication configured"
+        
+      - name: Validate code quality
+        run: |
+          echo "🔍 Running validation..."
+          npm run type-check
+          npm test
+          npm run build
+          echo "✅ Validation passed"
+          
+      - name: Update version
+        run: |
+          echo "📝 Updating version to ${{ github.event.inputs.version }}"
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          echo "✅ Version updated"
+          
+      - name: Build package
+        run: |
+          npm run build
+          echo "✅ Build completed"
+          
+      - name: Test package
+        run: |
+          npm pack
+          echo "✅ Package test passed"
+          rm -f *.tgz
+          
+      - name: Create Git tag
+        if: ${{ github.event.inputs.create_git_tag == 'true' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json package-lock.json
+          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
+          git tag v${{ github.event.inputs.version }}
+          echo "✅ Git tag created"
+          
+      - name: Push changes
+        run: |
+          git push origin main
+          if [ "${{ github.event.inputs.create_git_tag }}" = "true" ]; then
+            git push origin v${{ github.event.inputs.version }}
+            echo "✅ Tag pushed to GitHub"
+          else
+            echo "⏭️ Skipping tag push (create_git_tag is false)"
+          fi
+          echo "✅ Changes pushed to GitHub"
+          
+
+          
+      - name: Get Commit List
+        if: ${{ github.event.inputs.create_github_release == 'true' }}
+        id: commits
+        run: |
+          echo "🔍 Generating commit list..."
+          
+          # Check if we have any tags
+          if git tag --list | grep -q .; then
+            # Get the last tag
+            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$LAST_TAG" ]; then
+              echo "📝 Found last tag: $LAST_TAG"
+              COMMITS=$(git log $LAST_TAG..HEAD --pretty=format:"- %h %s (%an)" | head -20)
+              if [ -z "$COMMITS" ]; then
+                echo "⚠️ No commits since last tag, showing all commits"
+                COMMITS=$(git log --pretty=format:"- %h %s (%an)" | head -20)
+              fi
+            else
+              echo "📝 No tags found, showing all commits"
+              COMMITS=$(git log --pretty=format:"- %h %s (%an)" | head -20)
+            fi
+          else
+            echo "📝 No tags found, showing all commits"
+            COMMITS=$(git log --pretty=format:"- %h %s (%an)" | head -20)
+          fi
+          
+          echo "📋 Found commits:"
+          echo "$COMMITS"
+          
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+      - name: Create GitHub Release
+        if: ${{ github.event.inputs.create_github_release == 'true' }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: Release v${{ github.event.inputs.version }}
+          body: |
+            ## 🎉 Release v${{ github.event.inputs.version }}
+            
+            ### Commits in this release:
+            
+            ${{ steps.commits.outputs.commits }}
+            
+            ---
+            
+            ### Installation
+            ```bash
+            npm install tranzilajs@${{ github.event.inputs.version }}
+            ```
+            
+            ### Documentation
+            - [README](README.md) - Complete API reference and examples
+            - [Usage Examples](usage-examples/) - Working code examples
+            - [Contributing Guide](CONTRIBUTING.md) - How to contribute
+            
+            ---
+            
+            *This release was automatically generated by GitHub Actions*
+          draft: false
+          prerelease: false
+          
+
+          
+      - name: Publish to npm
+        if: ${{ github.event.inputs.publish_to_npm == 'true' }}
+        run: |
+          echo "📦 Publishing to npm..."
+          npm publish --access public --tag ${{ github.event.inputs.npm_tag }}
+          echo "✅ Published to npm successfully"
+          
+      - name: Release Summary
+        run: |
+          echo "🎉 Release Summary"
+          echo "=================="
+          echo "Version: ${{ github.event.inputs.version }}"
+          if [ "${{ github.event.inputs.create_git_tag }}" = "true" ]; then
+            echo "Git Tag: v${{ github.event.inputs.version }}"
+          else
+            echo "Git Tag: Not created"
+          fi
+          echo "GitHub Release: ${{ github.event.inputs.create_github_release }}"
+          echo "npm Publish: ${{ github.event.inputs.publish_to_npm }}"
+          echo "npm Tag: ${{ github.event.inputs.npm_tag }}"
+          echo ""
+          echo "✅ Release workflow completed successfully!" 

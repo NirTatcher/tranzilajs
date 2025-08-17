@@ -1,0 +1,39 @@
+{
+    "error_code": 0,
+    "message": "Success",
+    "transaction_result": {
+        "processor_response_code": "000",
+        "transaction_id": "123456",
+        "amount": 5,
+        "currency_code": "ILS",
+        "card_locality": "domestic"
+    },
+    "original_request": {
+        "terminal_name": "myterminal",
+        "txn_currency_code": "ILS",
+        "txn_type": "debit",
+        "client": {
+            "name": "Test User",
+            "email": "john.doe@example.com"
+        },
+        "items": [
+            {
+                "name": "Test Product",
+                "type": "I",
+                "unit_type": 1,
+                "price_type": "G",
+                "unit_price": 5,
+                "units_number": 1,
+                "vat_percent": 0,
+                "currency_code": "ILS"
+            }
+        ],
+        "success_url": "https://your-site.com/success",
+        "failure_url": "https://your-site.com/fail",
+        "notify_url": "https://your-site.com/notify",
+        "user_defined_fields": [],
+        "txn_id": "123456",
+        "response": "000",
+        "processor_response_code": "000"
+    }
+}
