@@ -2,8 +2,6 @@
 
 A comprehensive TypeScript library for integrating with the Tranzila payment gateway API. Provides type-safe, well-documented methods for all major Tranzila payment operations.
 
-> 📚 **Official Documentation**: For detailed API specifications and advanced features, refer to the [official Tranzila documentation](https://docs.tranzila.com/).
-
 ## Features
 
 - 🚀 **Full TypeScript Support** - Complete type definitions and IntelliSense
