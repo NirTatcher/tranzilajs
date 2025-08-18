@@ -1,5 +1,10 @@
 # TranzilaJS
 
+![npm](https://img.shields.io/npm/dw/tranzilajs) ![npm](https://img.shields.io/npm/dm/tranzilajs) ![npm](https://img.shields.io/npm/dy/tranzilajs)
+
+![Build Status](https://github.com/NirTatcher/tranzilajs/workflows/Release/badge.svg)
+
+
 A comprehensive TypeScript library for integrating with the Tranzila payment gateway API. Provides type-safe, well-documented methods for all major Tranzila payment operations.
 
 ## Features
