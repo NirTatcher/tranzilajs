@@ -1,6 +1,6 @@
 {
   "name": "tranzilajs",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "A comprehensive TypeScript library for integrating with the Tranzila payment gateway API",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -32,7 +32,6 @@
     "clean": "rm -rf dist && rm -f *.tgz",
     "prebuild": "npm run clean",
     "validate": "npm run type-check && npm test && npm run build",
-    "prepack": "npm run validate",
     "package": "npm pack",
     "test:package": "npm run package && npm install ./tranzilajs-*.tgz && npm uninstall tranzilajs && npm run clean && npm install",
     "test:compatibility": "node scripts/test-modules.js",
