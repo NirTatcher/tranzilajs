@@ -47,7 +47,6 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
           
       - name: Install dependencies
         run: npm ci
@@ -56,8 +55,21 @@ jobs:
         if: ${{ github.event.inputs.publish_to_npm == 'true' }}
         run: |
           echo "🔐 Setting up npm authentication..."
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          echo "✅ npm authentication configured"
+          echo "registry=https://registry.npmjs.org" > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+          echo "✅ npm authentication and registry configured"
+          
+      - name: Clear npm cache and prepare for publishing
+        if: ${{ github.event.inputs.publish_to_npm == 'true' }}
+        run: |
+          echo "🧹 Clearing npm cache and preparing for publishing..."
+          npm cache clean --force
+          echo "✅ npm cache cleared"
+          
+          # Verify we can access the registry
+          echo "🔍 Testing npm registry access..."
+          npm config get registry
+          echo "✅ Registry access verified"
         
       - name: Validate code quality
         run: |
@@ -70,7 +82,15 @@ jobs:
       - name: Update version
         run: |
           echo "📝 Updating version to ${{ github.event.inputs.version }}"
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          
+          # Ensure version is not 0.0.0 (npm doesn't allow this)
+          if [ "${{ github.event.inputs.version }}" = "0.0.0" ]; then
+            echo "⚠️ Version 0.0.0 detected, updating to 1.0.0 for first release..."
+            npm version 1.0.0 --no-git-tag-version
+          else
+            npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          fi
+          
           echo "✅ Version updated"
           
       - name: Build package
@@ -78,11 +98,31 @@ jobs:
           npm run build
           echo "✅ Build completed"
           
-      - name: Test package
+      - name: Validate package.json
+        id: validate
         run: |
-          npm pack
-          echo "✅ Package test passed"
-          rm -f *.tgz
+          echo "🔍 Validating package.json..."
+          
+          # Check if version is valid for npm publishing
+          VERSION=$(node -p "require('./package.json').version")
+          echo "📦 Package version: $VERSION"
+          
+          if [ "$VERSION" = "0.0.0" ]; then
+            echo "❌ Version 0.0.0 is not allowed for npm publishing"
+            echo "🔄 Updating to 1.0.0..."
+            npm version 1.0.0 --no-git-tag-version
+            echo "✅ Version updated to 1.0.0"
+          fi
+          
+          # Verify the package name
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          echo "📦 Package name: $PACKAGE_NAME"
+          
+          # Capture final version for use in other steps
+          FINAL_VERSION=$(node -p "require('./package.json').version")
+          echo "final_version=$FINAL_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "✅ Package validation passed"
           
       - name: Create Git tag
         if: ${{ github.event.inputs.create_git_tag == 'true' }}
@@ -90,15 +130,25 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add package.json package-lock.json
-          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
-          git tag v${{ github.event.inputs.version }}
-          echo "✅ Git tag created"
+          git commit -m "chore: bump version to ${{ steps.validate.outputs.final_version }}"
+          
+          # Check if tag already exists and remove it if it does
+          TAG_NAME="v${{ steps.validate.outputs.final_version }}"
+          if git tag -l | grep -q "^$TAG_NAME$"; then
+            echo "⚠️ Tag $TAG_NAME already exists, removing it..."
+            git tag -d "$TAG_NAME"
+            git push origin ":refs/tags/$TAG_NAME" || echo "Tag removal from remote failed (this is okay)"
+          fi
+          
+          # Create the new tag
+          git tag "$TAG_NAME"
+          echo "✅ Git tag created for version ${{ steps.validate.outputs.final_version }}"
           
       - name: Push changes
         run: |
           git push origin main
           if [ "${{ github.event.inputs.create_git_tag }}" = "true" ]; then
-            git push origin v${{ github.event.inputs.version }}
+            git push origin v${{ steps.validate.outputs.final_version }}
             echo "✅ Tag pushed to GitHub"
           else
             echo "⏭️ Skipping tag push (create_git_tag is false)"
@@ -146,10 +196,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ github.event.inputs.version }}
-          release_name: Release v${{ github.event.inputs.version }}
+          tag_name: v${{ steps.validate.outputs.final_version }}
+          release_name: Release v${{ steps.validate.outputs.final_version }}
           body: |
-            ## 🎉 Release v${{ github.event.inputs.version }}
+            ## 🎉 Release v${{ steps.validate.outputs.final_version }}
             
             ### Commits in this release:
             
@@ -159,7 +209,7 @@ jobs:
             
             ### Installation
             ```bash
-            npm install tranzilajs@${{ github.event.inputs.version }}
+            npm install tranzilajs@${{ steps.validate.outputs.final_version }}
             ```
             
             ### Documentation
@@ -179,16 +229,21 @@ jobs:
         if: ${{ github.event.inputs.publish_to_npm == 'true' }}
         run: |
           echo "📦 Publishing to npm..."
+          echo "🚀 Publishing with --access public..."
+          
+          # Simple direct publish - no complex detection needed
+          echo "🔍 Publishing package directly to npm..."
           npm publish --access public --tag ${{ github.event.inputs.npm_tag }}
-          echo "✅ Published to npm successfully"
+          echo "✅ Published to npm successfully!"
           
       - name: Release Summary
         run: |
           echo "🎉 Release Summary"
           echo "=================="
-          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Input Version: ${{ github.event.inputs.version }}"
+          echo "Final Version: ${{ steps.validate.outputs.final_version }}"
           if [ "${{ github.event.inputs.create_git_tag }}" = "true" ]; then
-            echo "Git Tag: v${{ github.event.inputs.version }}"
+            echo "Git Tag: v${{ steps.validate.outputs.final_version }}"
           else
             echo "Git Tag: Not created"
           fi

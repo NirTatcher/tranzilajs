@@ -179,7 +179,7 @@ Refund a Bit payment.
 const payload: BitRefundPayload = {
   terminal_name: 'your-terminal',
   transaction_id: 12345,
-  amount: 5 // Amount in cents (5.00 ILS)
+  amount: 5
 };
 
 const result = await tranzila.Bit.refund(payload);
@@ -221,7 +221,7 @@ Refund a credit card payment.
 ```typescript
 const payload: CardRefundPayload = {
   supplier: "myterminal",
-  sum: 5, // Amount in cents (5.00 ILS)
+  sum: 5,
   currency: 1,
   TranzilaTK: "1234567890",
   expdate: "0828",
@@ -545,14 +545,13 @@ When payments are completed, Tranzila sends POST requests to your configured URL
 - **Success Callbacks** (`success_url`): User redirected after successful payment
 - **Failure Callbacks** (`failure_url`): User redirected after failed payment
 
-### Implementing Callbacks
+### Implementing Notify Callback
 
 ```typescript
 // Example Express.js callback handler
 app.post('/notify', (req, res) => {
   const callbackData = req.body;
   
-  // Verify the callback is from Tranzila (check signatures, etc.)
   if (callbackData.Response === '000') {
     // Payment successful
     console.log('Payment completed:', callbackData);
@@ -560,7 +559,7 @@ app.post('/notify', (req, res) => {
   } else {
     // Payment failed
     console.log('Payment failed:', callbackData);
-    // Handle failure (refund, notify user, etc.)
+    // Handle failure (update your database, notify user, etc.)
   }
   
   res.status(200).send('OK');

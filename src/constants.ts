@@ -1,4 +1,13 @@
 // Tranzila-specific constants
+
+/**
+ * API Base URLs
+ * @type {Object} ApiBaseUrls
+ * @property {string} PAYMENTS - Payments API URL
+ * @property {string} REPORTS - Reports API URL
+ * @property {string} SECURE5 - Secure5 API URL
+ * @property {string} CHECKOUT - Checkout API URL
+ */
 export const ApiBaseUrls = {
   PAYMENTS: 'https://api.tranzila.com',
   REPORTS: 'https://report.tranzila.com',
@@ -6,11 +15,28 @@ export const ApiBaseUrls = {
   CHECKOUT: 'https://direct.tranzila.com'
 } as const;
 
+/**
+ * Iframe Paths
+ * @type {Object} IframePaths
+ * @property {string} IFRAME_NEW - New Iframe Path
+ * @property {string} NEW_IFRAME - Old Iframe Path
+ */
 export const IframePaths = {
-  "IFRAME_NEW(NEW)": "iframenew.php",
-  "NEW_IFRAME(OLD)": "newiframe.php"
+  "IFRAME_NEW": "iframenew.php",
+  "NEW_IFRAME": "newiframe.php"
 } as const
 
+/**
+ * API Endpoints
+ * @type {Object} ApiEndpoints
+ * @property {string} BIT_INIT - Bit Init API Endpoint
+ * @property {string} BIT_REFUND - Bit Refund API Endpoint
+ * @property {string} CARD_REFUND - Card Refund API Endpoint
+ * @property {string} STO_CREATE - Standing Order Create API Endpoint
+ * @property {string} STO_UPDATE - Standing Order Update API Endpoint
+ * @property {string} STO_RETRIEVE - Standing Order Retrieve API Endpoint
+ * @property {string} SEARCH_TRANSACTIONS - Search Transactions API Endpoint
+ */
 export const ApiEndpoints = {
   "BIT_INIT": "/v1/transaction/bit/init",
   "BIT_REFUND": "/v1/transaction/bit/refund",
@@ -21,12 +47,29 @@ export const ApiEndpoints = {
   "SEARCH_TRANSACTIONS": "/v1/transaction",
 } as const
 
+/**
+ * Cred Types
+ * @type {Object} CredTypes
+ * @property {number} CREDIT_CARD - Credit Card
+ * @property {number} CREDIT - Credit
+ * @property {number} PAYMENTS - Payments
+ */
 export const CredTypes = {
   "CREDIT_CARD": 1,
   "CREDIT": 6,
   "PAYMENTS": 8
 } as const;
 
+/**
+ * Card Issuers
+ * @type {Object} CardIssuers
+ * @property {number} ISRACART - Isracart
+ * @property {number} VISA_CAL - Visa Cal
+ * @property {number} DINERS - Diners
+ * @property {number} AMERICAN_EXPRESS - American Express
+ * @property {number} JCB - JCB
+ * @property {number} LEUMI_CARD - Leumi Card
+ */
 export const CardIssuers = {
   "ISRACART": 1,
   "VISA_CAL": 2,
@@ -36,6 +79,17 @@ export const CardIssuers = {
   "LEUMI_CARD": 6
 } as const;
 
+/**
+ * Card Acquirers
+ * @type {Object} CardAcquirers
+ * @property {number} UNKNOWN - Unknown
+ * @property {number} ISRACART - Isracart
+ * @property {number} VISA_CAL - Visa Cal
+ * @property {number} DINERS - Diners
+ * @property {number} AMERICAN_EXPRESS - American Express
+ * @property {number} JCB - JCB
+ * @property {number} LEUMI_CARD - Leumi Card
+ */
 export const CardAcquirers = {
   /** Unkown */
   "UNKNOWN": 0,
@@ -47,6 +101,14 @@ export const CardAcquirers = {
   "LEUMI_CARD": 6
 } as const
 
+/**
+ * Card Types
+ * @type {Object} CardTypes
+ * @property {number} ISSUER - Issuer
+ * @property {number} MASTERCARD - Mastercard
+ * @property {number} VISA - Visa
+ * @property {number} MAESTRO - Maestro
+ */
 export const CardTypes = {
   "ISSUER": 0,
   "MASTERCARD": 1,
@@ -54,6 +116,17 @@ export const CardTypes = {
   "MAESTRO": 3
 } as const
 
+/**
+ * Transaction Modes
+ * @type {Object} TranModes
+ * @property {string} STANDARD - Standard
+ * @property {string} VERIFICATION_J5 - Verification (J5)
+ * @property {string} CREATE_TOKEN_NO_VERIFICATION - Create token without checking card
+ * @property {string} VERIFICATION_J2 - Verification (J2)
+ * @property {string} STANDARD_WITH_TOKEN - Standard with token
+ * @property {string} VERIFICATION_WITH_TOKEN - Verification (J5) with token
+ * @property {string} CREATE_TOKEN_WITH_TOKEN - Create token with token
+ */
 export const TranModes = {
     /** Standard */
     "STANDARD": "A",
@@ -71,6 +144,17 @@ export const TranModes = {
     "CREATE_TOKEN_WITH_TOKEN": "NK"
 } as const
 
+/**
+ * Languages
+ * @type {Object} Languages
+ * @property {string} Hebrew - il
+ * @property {string} Arabic - ar
+ * @property {string} Russian - ru
+ * @property {string} Spanish - es
+ * @property {string} German - de
+ * @property {string} French - fr
+ * @property {string} Japanese - jp
+ */
 export const Languages ={
   "Hebrew" : "il",
   "Arabic": "ar",
@@ -81,11 +165,25 @@ export const Languages ={
   "Japanese": "jp"
 } as const
 
+/**
+ * Response Languages
+ * @type {Object} ResponseLanguages
+ * @property {string} Hebrew - hebrew
+ * @property {string} English - english
+ */
 export const ResponseLanguages = {
   "HEBREW": "hebrew",
   "ENGLISH": "english"
 } as const
 
+/**
+ * Currency Codes Numeric
+ * @type {Object} CurrencyCodesNumeric
+ * @property {number} NIS - NIS
+ * @property {number} USD - USD
+ * @property {number} EUR - EUR
+ * @property {number} GBP - GBP
+ */
 export const CurrencyCodesNumeric = {
   "NIS": 1,
   "USD": 2,
@@ -93,12 +191,29 @@ export const CurrencyCodesNumeric = {
   "GBP": 826
 } as const
 
+/**
+ * Currency Codes Alpha
+ * @type {Object} CurrencyCodesAlpha
+ * @property {string} ILS - ILS
+ * @property {string} USD - USD
+ * @property {string} EUR - EUR
+ */
 export const CurrencyCodesAlpha = {
   "ILS": "ILS",
   "USD": "USD",
   "EUR": "EUR",
 } as const
 
+/**
+ * Recur Transactions
+ * @type {Object} RecurTransactions
+ * @property {number} MONTHLY_CUSTOMER_CHOICE - Monthly Customer Choice
+ * @property {number} QUARTERLY_CUSTOMER_CHOICE - Quarterly Customer Choice
+ * @property {number} YEARLY_CUSTOMER_CHOICE - Yearly Customer Choice
+ * @property {string} MONTHLY_NOT_CUSTOMER_CHOICE - Monthly Not Customer Choice
+ * @property {string} QUARTERLY_NOT_CUSTOMER_CHOICE - Quarterly Not Customer Choice
+ * @property {string} YEARLY_NOT_CUSTOMER_CHOICE - Yearly Not Customer Choice
+ */
 export const RecurTransactions = {
   "MONTHLY_CUSTOMER_CHOICE": 4,
   "QUARTERLY_CUSTOMER_CHOICE": 5,
@@ -108,11 +223,26 @@ export const RecurTransactions = {
   "YEARLY_NOT_CUSTOMER_CHOICE": "7_approved"
 } as const
 
+/**
+ * Standing Order Statuses
+ * @type {Object} StandingOrderStatuses
+ * @property {string} ACTIVE - Active
+ * @property {string} INACTIVE - Inactive
+ */
 export const StandingOrderStatuses = {
   "ACTIVE": "active",
   "INACTIVE": "inactive"
 } as const
 
+/**
+ * Charge Frequencies
+ * @type {Object} ChargeFrequencies
+ * @property {string} WEEKLY - Weekly
+ * @property {string} MONTHLY - Monthly
+ * @property {string} QUARTERLY - Quarterly
+ * @property {string} HALF_YEARLY - Half-Yearly
+ * @property {string} YEARLY - Yearly
+ */
 export const ChargeFrequencies = {
   "WEEKLY": "weekly",
   "MONTHLY": "monthly",
@@ -121,11 +251,37 @@ export const ChargeFrequencies = {
   "YEARLY": "yearly"
 } as const
 
+/**
+ * Discount Types
+ * @type {Object} DiscountTypes
+ * @property {string} FIXED - Fixed
+ * @property {string} PERCENT - Percent
+ */
 export const DiscountTypes = {
   "FIXED": "fixed",
   "PERCENT": "percent"
 } as const
 
+/**
+ * Bit Unit Types
+ * @type {Object} BitUnitTypes
+ * @property {number} UNIT - Unit
+ * @property {number} GRAM - Gram
+ * @property {number} KILOGRAM - Kilogram
+ * @property {number} TON - Ton
+ * @property {number} DAY - Day
+ * @property {number} WEEK - Week
+ * @property {number} MONTH - Month
+ * @property {number} YEAR - Year
+ * @property {number} CENTIMETER - Centimeter
+ * @property {number} METER - Meter
+ * @property {number} KILOMETER - Kilometer
+ * @property {number} MB - MB
+ * @property {number} GB - GB
+ * @property {number} TB - TB
+ * @property {number} HOUR - Hour
+ * @property {number} LITRE - Litre
+ */
 export const BitUnitTypes  = {
   "UNIT": 1,
   "GRAM": 2,
@@ -145,17 +301,35 @@ export const BitUnitTypes  = {
   "LITRE": 16
 } as const
 
+/**
+ * Price Types
+ * @type {Object} PriceTypes
+ * @property {string} NET - Net
+ * @property {string} GROSS - Gross
+ */
 export const PriceTypes = {
   "NET": "N",
   "GROSS": "G"
 } as const
 
+/**
+ * Bit Item Types
+ * @type {Object} BitItemTypes
+ * @property {string} ITEM - Item
+ * @property {string} SHIPPING - Shipping
+ * @property {string} COUPON - Coupon
+ */
 export const BitItemTypes = {
   "ITEM": "I",
   "SHIPPING": "S",
   "COUPON": "C"
 } as const
 
+/**
+ * SHVA Response Codes
+ * @type {Object} ShvaResponseCodesEn
+ * 
+ */
 export const ShvaResponseCodesEn = {
   "shva": "Pending SHVA response.",
   "000": "Transaction approved.",
@@ -419,6 +593,11 @@ export const ShvaResponseCodesEn = {
   "726": "Error in receiving config.xml file.",
   "730": "Device approved transaction."
 } as const
+
+/**
+ * SHVA Response Codes
+ * @type {Object} ShvaResponseCodes
+ */
 export const shvaResponseCodes = {
   "000": "מאושר",
   "777": "פעולה הושלמה (קוד הצלחה לפעולות בהן לא נרשמת עסקה, כוללJ2  ו- J5)",
