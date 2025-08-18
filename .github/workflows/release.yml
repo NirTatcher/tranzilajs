@@ -79,18 +79,25 @@ jobs:
           echo "✅ Validation passed"
           
       - name: Update version
+        id: version_update
         run: |
           echo "📝 Updating version to ${{ github.event.inputs.version }}"
+          
+          # Store original version for potential rollback
+          ORIGINAL_VERSION=$(node -p "require('./package.json').version")
+          echo "original_version=$ORIGINAL_VERSION" >> $GITHUB_OUTPUT
           
           # Ensure version is not 0.0.0 (npm doesn't allow this)
           if [ "${{ github.event.inputs.version }}" = "0.0.0" ]; then
             echo "⚠️ Version 0.0.0 detected, updating to 1.0.0 for first release..."
             npm version 1.0.0 --no-git-tag-version
+            echo "new_version=1.0.0" >> $GITHUB_OUTPUT
           else
             npm version ${{ github.event.inputs.version }} --no-git-tag-version
+            echo "new_version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
           fi
           
-          echo "✅ Version updated"
+          echo "✅ Version updated from $ORIGINAL_VERSION to $(node -p "require('./package.json').version")"
           
       - name: Build package
         run: |
@@ -142,6 +149,22 @@ jobs:
           echo "🚀 Testing publish command..."
           npm publish --dry-run --access public
           echo "✅ Dry-run test passed - npm publish should work!"
+          
+      - name: Test npm configuration only
+        if: ${{ github.event.inputs.publish_to_npm == 'false' }}
+        run: |
+          echo "🧪 Testing npm configuration only (npm publishing disabled)..."
+          
+          # Verify npm configuration
+          echo "🔍 Verifying npm configuration..."
+          npm config get registry
+          npm whoami
+          node -p "require('./package.json').name"
+          node -p "require('./package.json').version"
+          
+          echo "📦 Package details:"
+          npm pack --dry-run
+          echo "✅ npm configuration test passed - package is ready for publishing when enabled!"
           
       - name: Create Git tag
         if: ${{ github.event.inputs.create_git_tag == 'true' }}
@@ -270,4 +293,35 @@ jobs:
           echo "npm Publish: ${{ github.event.inputs.publish_to_npm }}"
           echo "npm Tag: ${{ github.event.inputs.npm_tag }}"
           echo ""
-          echo "✅ Release workflow completed successfully!" 
+          echo "✅ Release workflow completed successfully!"
+          
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🚨 Pipeline failed! Rolling back version changes..."
+          
+          # Check if we have version info from the update step
+          if [ -n "${{ steps.version_update.outputs.original_version }}" ]; then
+            echo "🔄 Rolling back to version ${{ steps.version_update.outputs.original_version }}"
+            
+            # Reset package.json to original version
+            npm version ${{ steps.version_update.outputs.original_version }} --no-git-tag-version --allow-same-version
+            
+            # Reset package-lock.json if it exists
+            if [ -f "package-lock.json" ]; then
+              echo "🔄 Resetting package-lock.json"
+              git checkout HEAD -- package-lock.json
+            fi
+            
+            # Commit the rollback
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add package.json package-lock.json
+            git commit -m "chore: rollback version to ${{ steps.version_update.outputs.original_version }} after pipeline failure"
+            
+            # Push the rollback
+            git push origin main
+            echo "✅ Version rolled back to ${{ steps.version_update.outputs.original_version }}"
+          else
+            echo "⚠️ Could not determine original version, manual rollback may be needed"
+          fi 
