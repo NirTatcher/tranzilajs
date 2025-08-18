@@ -76,7 +76,6 @@ jobs:
           echo "🔍 Running validation..."
           npm run type-check
           npm test
-          npm run build
           echo "✅ Validation passed"
           
       - name: Update version
@@ -107,13 +106,6 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "📦 Package version: $VERSION"
           
-          if [ "$VERSION" = "0.0.0" ]; then
-            echo "❌ Version 0.0.0 is not allowed for npm publishing"
-            echo "🔄 Updating to 1.0.0..."
-            npm version 1.0.0 --no-git-tag-version
-            echo "✅ Version updated to 1.0.0"
-          fi
-          
           # Verify the package name
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           echo "📦 Package name: $PACKAGE_NAME"
@@ -123,6 +115,33 @@ jobs:
           echo "final_version=$FINAL_VERSION" >> $GITHUB_OUTPUT
           
           echo "✅ Package validation passed"
+          
+      - name: Prepare for publishing
+        run: |
+          echo "🔧 Preparing for npm publishing..."
+          
+          # Temporarily disable prepack script to prevent duplicate builds
+          echo "📝 Temporarily disabling prepack script..."
+          npm pkg delete scripts.prepack
+          echo "✅ Prepack script disabled"
+          
+      - name: Test npm publish (dry-run)
+        if: ${{ github.event.inputs.publish_to_npm == 'true' }}
+        run: |
+          echo "🧪 Testing npm publish with dry-run..."
+          
+          # Verify npm configuration
+          echo "🔍 Verifying npm configuration..."
+          echo "Registry: $(npm config get registry)"
+          echo "User: $(npm whoami)"
+          echo "Package name: $(node -p "require('./package.json').name")"
+          echo "Package version: $(node -p "require('./package.json').version)"
+          
+          echo "📦 Package details:"
+          npm pack --dry-run
+          echo "🚀 Testing publish command..."
+          npm publish --dry-run --access public
+          echo "✅ Dry-run test passed - npm publish should work!"
           
       - name: Create Git tag
         if: ${{ github.event.inputs.create_git_tag == 'true' }}
