@@ -329,51 +329,34 @@ jobs:
                 || echo "GitHub release deletion failed (may need manual cleanup)"
             fi
             
-            # 3. ROLLBACK GIT COMMITS AND PUSHES
-            echo "🔄 Rolling back Git commits..."
-            
-            # Find how many commits we made during this workflow
-            COMMIT_COUNT=$(git log --oneline HEAD~10..HEAD | grep -E "(chore: bump version|chore: rollback version)" | wc -l)
-            echo "📝 Found $COMMIT_COUNT workflow-related commits to rollback"
-            
-            if [ "$COMMIT_COUNT" -gt 0 ]; then
-              # Reset to before our workflow started
-              git reset --hard HEAD~$COMMIT_COUNT
-              echo "🔄 Reset Git history to before workflow changes"
-              
-              # Try to push the rollback, but handle permission issues gracefully
-              echo "🚀 Pushing rollback to remote..."
-              if git push origin main; then
-                echo "✅ Git history rolled back and pushed successfully"
-              else
-                echo "⚠️ Push failed due to permissions (this is normal for workflow files)"
-                echo "🔄 Creating a new commit to restore the original state"
-                
-                # Create a new commit that restores the original state
-                git config --local user.email "action@github.com"
-                git config --local user.name "GitHub Action"
-                git add .
-                git commit -m "chore: restore repository state after pipeline failure"
-                git push origin main
-                echo "✅ Repository state restored via new commit"
-              fi
-            fi
-            
-            # 4. ROLLBACK PACKAGE FILES (as backup)
+            # 3. ROLLBACK PACKAGE FILES (simple restoration)
             echo "📦 Rolling back package files..."
-            npm version ${{ steps.version_update.outputs.original_version }} --no-git-tag-version --allow-same-version
-            
-            if [ -f "package-lock.json" ]; then
-              echo "🔄 Resetting package-lock.json"
-              git checkout HEAD -- package-lock.json
-            fi
+              # Reset to before our workflow started
+                            echo "🔄 Simple package restoration approach..."
+              
+              # Restore package files to original version
+              npm version ${{ steps.version_update.outputs.original_version }} --no-git-tag-version --allow-same-version
+              
+              if [ -f "package-lock.json" ]; then
+                echo "🔄 Resetting package-lock.json"
+                git checkout HEAD -- package-lock.json
+              fi
+              
+              # Commit and push the restoration (simple approach)
+              echo "🔄 Committing version restoration..."
+              git config --local user.email "action@github.com"
+              git config --local user.name "GitHub Action"
+              git add package.json package-lock.json
+              git commit -m "chore: restore version to ${{ steps.version_update.outputs.original_version }} after pipeline failure"
+              git push origin main
+              echo "✅ Version restoration committed and pushed"
             
             echo "✅ Complete rollback finished!"
             echo "✅ Version: ${{ steps.version_update.outputs.original_version }}"
             echo "✅ Git tag: Removed"
             echo "✅ GitHub release: Deleted via API"
-            echo "✅ Git history: Reset to before workflow"
             echo "✅ Package files: Restored"
+            echo "✅ Version restoration: Committed and pushed"
           else
             echo "⚠️ Could not determine original version, manual rollback may be needed"
             echo "🔍 Manual cleanup required:"
