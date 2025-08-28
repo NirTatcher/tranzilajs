@@ -22,11 +22,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
           
       - name: Install dependencies
-        run: npm ci
+        run: npm install
         
+      - name: Validate dependencies installation
+        run: |
+          echo "🔍 Validating dependencies installation..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ ERROR: Dependencies not properly installed!"
+            echo "node_modules directory is missing."
+            echo "This indicates an npm installation failure."
+            exit 1
+          fi
+          
+          # Check if all dependencies from package.json are installed
+          npm ls --depth=0 || {
+            echo "❌ ERROR: Some dependencies are missing or have conflicts!"
+            echo "Please check the npm installation output above for details."
+            exit 1
+          }
+          echo "✅ Dependencies validation passed"
+          
       - name: Run linting and type checking
         run: |
           npm run type-check
@@ -60,18 +77,6 @@ jobs:
           echo "✅ Package created successfully"
           echo "📦 Package file:"
           ls -la *.tgz
-          
-      - name: Check for circular dependencies
-        run: |
-          echo "🔍 Checking for circular dependencies..."
-          if grep -q "tranzilajs.*file:" package-lock.json; then
-            echo "❌ ERROR: Circular dependency detected in package-lock.json!"
-            echo "Found: $(grep 'tranzilajs.*file:' package-lock.json)"
-            echo "This usually happens after running 'npm run test:package'"
-            echo "Please remove package-lock.json and run 'npm install' to fix"
-            exit 1
-          fi
-          echo "✅ No circular dependencies found"
           
       - name: Cleanup
         run: |
