@@ -46,10 +46,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
           
       - name: Install dependencies
-        run: npm ci
+        run: npm install
         
       - name: Setup npm authentication
         if: ${{ github.event.inputs.publish_to_npm == 'true' }}
@@ -171,7 +170,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json package-lock.json
+          git add package.json
           git commit -m "chore: bump version to ${{ steps.validate.outputs.final_version }}"
           
           # Check if tag already exists and remove it if it does
@@ -337,16 +336,11 @@ jobs:
               # Restore package files to original version
               npm version ${{ steps.version_update.outputs.original_version }} --no-git-tag-version --allow-same-version
               
-              # Ensure package-lock.json matches the restored version
-              echo "🔄 Updating package-lock.json to match restored version..."
-              npm install --package-lock-only
-              echo "✅ package-lock.json updated to version ${{ steps.version_update.outputs.original_version }}"
-              
               # Commit and push the restoration (simple approach)
               echo "🔄 Committing version restoration..."
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action"
-              git add package.json package-lock.json
+              git add package.json
               git commit -m "chore: restore version to ${{ steps.version_update.outputs.original_version }} after pipeline failure"
               git push origin main
               echo "✅ Version restoration committed and pushed"
